@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstudioFlow | Dana Paola Zapata</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #fdf2f8; color: #3b0764; margin: 0; padding: 15px; }
+        .card { max-width: 680px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+        h2 { color: #9d174d; margin-top: 0; text-align: center; }
+        .sub { text-align: center; font-size: 12px; color: #6b7280; margin-bottom: 15px; }
+        .grid { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; margin-bottom: 10px; }
+        @media (max-width: 580px) { .grid { grid-template-columns: 1fr; } }
+        label { display: block; font-size: 11px; font-weight: bold; margin-bottom: 3px; }
+        input { width: 100%; padding: 8px; border: 1px solid #fbcfe8; border-radius: 5px; box-sizing: border-box; }
+        button { padding: 9px 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: #fff; }
+        .btn-add { background: #be185d; width: 100%; }
+        .item { display: flex; justify-content: space-between; align-items: center; border: 1px solid #f5d0fe; padding: 10px; border-radius: 6px; margin-top: 8px; background: #faf5ff; }
+        .done { opacity: 0.65; text-decoration: line-through; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>📚 EstudioFlow - Organizador de Entregas</h2>
+    <div class="sub">Proyecto Web • Dana Paola Zapata • Grupo 502</div>
+
+    <div class="grid">
+        <div><label>Asignatura:</label><input type="text" id="mat" placeholder="Ej. Aplicaciones Web"></div>
+        <div><label>Actividad / Entrega:</label><input type="text" id="act" placeholder="Ej. Subir proyecto a GitHub"></div>
+        <div><label>Fecha límite:</label><input type="date" id="fec"></div>
+    </div>
+    <button class="btn-add" onclick="agregarEntrega()">+ Agregar Pendiente</button>
+
+    <div id="listaEntregas"></div>
+</div>
+
+<script>
+    window.onload = function() {
+        document.getElementById("fec").value = new Date().toISOString().split("T")[0];
+        mostrarEntregas();
+    };
+
+    function getItems() { return JSON.parse(localStorage.getItem("estudioflow_dana")) || []; }
+    function setItems(d) { localStorage.setItem("estudioflow_dana", JSON.stringify(d)); }
+
+    function agregarEntrega() {
+        const mat = document.getElementById("mat").value.trim();
+        const act = document.getElementById("act").value.trim();
+        const fec = document.getElementById("fec").value;
+        if (!mat || !act || !fec) { alert("Completa asignatura, actividad y fecha."); return; }
+
+        const lista = getItems();
+        lista.push({ id: Date.now(), mat, act, fec, listo: false });
+        setItems(lista);
+        document.getElementById("mat").value = "";
+        document.getElementById("act").value = "";
+        mostrarEntregas();
+    }
+
+    function cambiarListo(id) {
+        const lista = getItems();
+        const item = lista.find(x => x.id === id);
+        if (item) { item.listo = !item.listo; setItems(lista); mostrarEntregas(); }
+    }
+
+    function eliminarItem(id) {
+        setItems(getItems().filter(x => x.id !== id));
+        mostrarEntregas();
+    }
+
+    function mostrarEntregas() {
+        const lista = getItems();
+        const box = document.getElementById("listaEntregas");
+        box.innerHTML = lista.length ? "" : "<p style='text-align:center; color:#6b7280;'>Sin entregas registradas aún.</p>";
+
+        lista.forEach(x => {
+            box.innerHTML += `
+                <div class="item ${x.listo ? 'done' : ''}">
+                    <div>
+                        <strong>[${x.mat}]</strong> ${x.act}<br>
+                        <small>📅 Entrega: ${x.fec}</small>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button style="background:#16a34a; font-size:12px;" onclick="cambiarListo(${x.id})">${x.listo ? 'Reabrir' : 'Listo'}</button>
+                        <button style="background:#dc2626; font-size:12px;" onclick="eliminarItem(${x.id})">X</button>
+                    </div>
+                </div>`;
+        });
+    }
+</script>
+</body>
+</html>
